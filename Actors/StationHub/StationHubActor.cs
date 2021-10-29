@@ -1,19 +1,18 @@
 using System;
 using System.Threading;
 using System.Threading.Tasks;
+using System.Collections.Generic;
 using Proto;
 
 namespace ActorDemo.Actors
 {
-    class StationActor:IActor
+    class StationHubActor:IActor
     {
-
+        List<PID> StationsPID;
         Lazy<ManualResetEvent> _stop = new Lazy<ManualResetEvent>(()=>new ManualResetEvent(false));
         private readonly Behavior _behavior;
-        public StationActor()
+        public StationHubActor()
         {
-            
-            
             _behavior = new Behavior();
             _behavior.Become(NullAsync);
         }
@@ -63,4 +62,6 @@ namespace ActorDemo.Actors
          return Task.CompletedTask;
         }
     }
+
+
 }
