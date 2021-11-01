@@ -23,6 +23,7 @@ namespace ActorDemo.Actors
             switch (ctx.Message)
             {
                 case Started:
+                    Console.WriteLine(ctx.Self.Id.ToString()+":is Started");
                     _behavior.Become(IdleAsync);
                 break;
 
@@ -40,12 +41,12 @@ namespace ActorDemo.Actors
                         for (int i = 0 ; i<10;i++)
                         {                   
                             Console.WriteLine(i);
+                            Console.WriteLine(ctx.Self.Id.ToString()+" : "+i);
                             Thread.Sleep(1000);
                             
                             var value = WaitHandle.WaitAny(new WaitHandle[] {_stop.Value},300);
                             if (value != 258)
                             {
-                                Console.WriteLine(value);
                                 break;
                             }
                         }

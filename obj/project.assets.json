@@ -755,11 +755,11 @@
   "project": {
     "version": "1.0.0",
     "restore": {
-      "projectUniqueName": "C:\\Users\\jeff.lin\\Documents\\Project\\C#\\ActorDemo\\ActorDemo.csproj",
+      "projectUniqueName": "C:\\Users\\jeff.lin\\Documents\\Project\\C#\\ActorDemo\\ActorDemo\\ActorDemo.csproj",
       "projectName": "ActorDemo",
-      "projectPath": "C:\\Users\\jeff.lin\\Documents\\Project\\C#\\ActorDemo\\ActorDemo.csproj",
+      "projectPath": "C:\\Users\\jeff.lin\\Documents\\Project\\C#\\ActorDemo\\ActorDemo\\ActorDemo.csproj",
       "packagesPath": "C:\\Users\\jeff.lin\\.nuget\\packages\\",
-      "outputPath": "C:\\Users\\jeff.lin\\Documents\\Project\\C#\\ActorDemo\\obj\\",
+      "outputPath": "C:\\Users\\jeff.lin\\Documents\\Project\\C#\\ActorDemo\\ActorDemo\\obj\\",
       "projectStyle": "PackageReference",
       "fallbackFolders": [
         "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages",

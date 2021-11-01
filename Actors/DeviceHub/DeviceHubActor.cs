@@ -6,12 +6,12 @@ using ModbusTCPActor;
 
 namespace ActorDemo.Actors
 {
-    class DeviceHub:IActor
+    class DeviceHubActor:IActor
     {
         static ushort count =100;
         PID modbusPID;
         private readonly Behavior _behavior;
-        public DeviceHub()
+        public DeviceHubActor()
         {
             _behavior = new Behavior();
             _behavior.Become(NullAsync);

@@ -13,6 +13,7 @@ namespace ActorDemo.Actors
         private readonly Behavior _behavior;
         public StationHubActor()
         {
+            StationsPID = new List<PID>();
             _behavior = new Behavior();
             _behavior.Become(NullAsync);
         }
@@ -23,6 +24,7 @@ namespace ActorDemo.Actors
             {
                 case Started:
                     _behavior.Become(IdleAsync);
+                    StationsPID.Clear();
                 break;
 
             }
@@ -32,34 +34,29 @@ namespace ActorDemo.Actors
         {
             switch (ctx.Message)
             {
-                case string msg when msg == "Start":
-                    _stop.Value.Reset();
-                    Task.Run(()=>
+                case string msg when msg == "Create":
+                    ctx.Send(ctx.Self,new IncarnateStationMessage());
+                break;
+                
+                case  IncarnateStationMessage:
+                    var name = "ST_"+StationsPID.Count.ToString("00");
+                    StationsPID.Add(IncarnateStation(ctx,name));
+                break;
+
+                case string msg:
+                    Console.WriteLine($"Station hub msg : {ctx.Message}");
+                    foreach (var st in StationsPID)
                     {
-                        for (int i = 0 ; i<10;i++)
-                        {                   
-                            Console.WriteLine(i);
-                            Thread.Sleep(1000);
-                            
-                            var value = WaitHandle.WaitAny(new WaitHandle[] {_stop.Value},300);
-                            if (value != 258)
-                            {
-                                Console.WriteLine(value);
-                                break;
-                            }
-                        }
-                    } );
-                     
-                break;  
-                case string msg when msg == "Stop":
-                Console.WriteLine($"Stop!!!");
-                _stop.Value.Set();
-                break;
-                case string msg when msg == "Start":
-                    Console.WriteLine($"msg : {msg}");
-                break;
+                        ctx.Forward(st);
+                    }
+                break;            
+                
             }
          return Task.CompletedTask;
+        }
+        private PID IncarnateStation(IContext ctx,string name)
+        {
+            return ctx.SpawnNamed(Props.FromProducer(()=>new StationActor()),name);
         }
     }
 

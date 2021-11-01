@@ -6,8 +6,8 @@ namespace ActorDemo.Actors
 {
     class MainActor:IActor
     {
-        PID st_01;
-        PID deviceHub;
+        PID stationHubPID;
+        PID deviceHubPID;
         private readonly Behavior _behavior;
         public MainActor()
         {
@@ -17,11 +17,13 @@ namespace ActorDemo.Actors
         public Task ReceiveAsync(IContext ctx) => _behavior.ReceiveAsync(ctx);
         public Task NullAsync(IContext ctx)
         {
-            if (st_01 == null)
-            {
-                
-                st_01 =ctx.SpawnNamed(Props.FromProducer(()=>new StationActor()),"st01") ;
-                deviceHub =ctx.SpawnNamed(Props.FromProducer(()=>new DeviceHub()),"dvhub") ;
+            if (stationHubPID == null)
+            {    
+                stationHubPID =ctx.SpawnNamed(Props.FromProducer(()=>new StationHubActor()),"st_hub") ;
+            }
+            if (deviceHubPID == null)
+            {    
+                deviceHubPID =ctx.SpawnNamed(Props.FromProducer(()=>new DeviceHubActor()),"dv_hub") ;
             }
             switch (ctx.Message)
             {
@@ -37,8 +39,8 @@ namespace ActorDemo.Actors
             switch (ctx.Message)
             {
                 case string msg:
-                    ctx.Send(st_01,ctx.Message);
-                    ctx.Send(deviceHub,ctx.Message);
+                    ctx.Send(stationHubPID,ctx.Message);
+                    ctx.Send(deviceHubPID,ctx.Message);
                 break;
                 
             }
