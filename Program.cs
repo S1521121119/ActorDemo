@@ -22,6 +22,10 @@ namespace ActorDemo
             while (msg!="exit")
             {   
                 msg = Console.ReadLine();
+
+                if (msg == "clear")
+                    Console.Clear();
+
                 root.Send(MainPid,msg);
             }
         }

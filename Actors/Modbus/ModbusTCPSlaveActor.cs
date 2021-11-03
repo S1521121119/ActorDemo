@@ -35,7 +35,6 @@ namespace ModbusTCPActor
             //string ServerName = Dns.GetHostEntry(Dns.GetHostName()).AddressList;
         }
 
-
         public Task ReceiveAsync(IContext context)
 
         {
@@ -54,16 +53,16 @@ namespace ModbusTCPActor
                   //Console.WriteLine("ModbusTCPSlaveActor Started Up");
                     break;
                 case WriteAI msg:
-                    AI(msg.StartingAddress, msg.Value);
+                    WriteHoldingRegisters(msg.StartingAddress, msg.Value);
                     break;
                 case WriteDI msg:
-                    DI(msg.StartingAddress, msg.Value);
+                    SetCoil(msg.StartingAddress, msg.Value);
                     break;
                 case WriteAO msg:
-                    AO(msg.StartingAddress, msg.Value);
+                    WriteInputRegisters(msg.StartingAddress, msg.Value);
                     break;
                 case WriteDO msg:
-                    DO(msg.StartingAddress, msg.Value);
+                    SetDiscretes(msg.StartingAddress, msg.Value);
                     break;
                 
                 case Stopping msg:
@@ -128,11 +127,11 @@ namespace ModbusTCPActor
             }
         }
         #region "Set AO"
-        private void AI(int index, ushort message)
+        private void WriteHoldingRegisters(int index, ushort message)
         {
             slave.DataStore.HoldingRegisters[index] = message;
         }
-        private void AO(int index, ushort message)
+        private void WriteInputRegisters(int index, ushort message)
         {
             slave.DataStore.InputRegisters[index] = message;
         }
@@ -187,11 +186,11 @@ namespace ModbusTCPActor
         #endregion
 
         #region "Set DO"
-        private void DI(int index, bool value)
+        private void SetCoil(int index, bool value)
         {
             slave.DataStore.CoilDiscretes[index] = value;
         }
-        private void DO(ushort index, bool value)
+        private void SetDiscretes(ushort index, bool value)
         {
             slave.DataStore.InputDiscretes[index] = value;
         }

@@ -24,6 +24,7 @@ namespace ActorDemo.Actors
                 case Started:
                     modbusPID = ctx.SpawnNamed(Props.FromProducer(()=>new ModbusTCPActor.ModbusTCPSlaveActor(502)),"Modbus");
                     _behavior.Become(IdleAsync);
+                    //ctx.Send(ctx.Parent,new DeviceHubStartedMessage());
                 break;
 
             }
@@ -31,7 +32,6 @@ namespace ActorDemo.Actors
         }
         public Task IdleAsync(IContext ctx)
         {
-                    
             switch (ctx.Message)
             {
                 case string msg when msg == "AO":

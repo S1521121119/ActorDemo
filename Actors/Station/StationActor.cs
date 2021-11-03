@@ -2,18 +2,17 @@ using System;
 using System.Threading;
 using System.Threading.Tasks;
 using Proto;
+using Utilities;
 
 namespace ActorDemo.Actors
 {
     class StationActor:IActor
     {
-
-        Lazy<ManualResetEvent> _stop = new Lazy<ManualResetEvent>(()=>new ManualResetEvent(false));
+        private readonly TaskEvent taskEvent = new TaskEvent();
+        private PID ProcedurePID;
         private readonly Behavior _behavior;
         public StationActor()
         {
-            
-            
             _behavior = new Behavior();
             _behavior.Become(NullAsync);
         }
@@ -23,8 +22,10 @@ namespace ActorDemo.Actors
             switch (ctx.Message)
             {
                 case Started:
-                    Console.WriteLine(ctx.Self.Id.ToString()+":is Started");
+                    Console.WriteLine(ctx.Parent.Id+" Create the "+ ctx.Self.Id.ToString()+":is Started");
                     _behavior.Become(IdleAsync);
+                    //Tell Parent(Station Hub) that self is Started;
+                    ctx.Request(ctx.Parent,new StationStartedMessage());
                 break;
 
             }
@@ -34,34 +35,27 @@ namespace ActorDemo.Actors
         {
             switch (ctx.Message)
             {
-                case string msg when msg == "Start":
-                    _stop.Value.Reset();
-                    Task.Run(()=>
-                    {
-                        for (int i = 0 ; i<10;i++)
-                        {                   
-                            Console.WriteLine(i);
-                            Console.WriteLine(ctx.Self.Id.ToString()+" : "+i);
-                            Thread.Sleep(1000);
-                            
-                            var value = WaitHandle.WaitAny(new WaitHandle[] {_stop.Value},300);
-                            if (value != 258)
-                            {
-                                break;
-                            }
-                        }
-                    } );
-                     
+                case string msg when msg == "Start":  
+                    taskEvent.Stop.Reset();
+                    taskEvent.Start.Set();
+                    ProcedurePID = IncarnateProcedure(ctx,taskEvent);
+                    ctx.Send(ProcedurePID,new StationRunningMessage());
                 break;  
                 case string msg when msg == "Stop":
-                Console.WriteLine($"Stop!!!");
-                _stop.Value.Set();
-                break;
-                case string msg when msg == "Start":
-                    Console.WriteLine($"msg : {msg}");
+                    taskEvent.Start.Reset();
+                    taskEvent.Stop.Set();
+                    Console.WriteLine($"Stop!!!");
                 break;
             }
          return Task.CompletedTask;
+        }
+        PID IncarnateProcedure(IContext ctx,TaskEvent taskEvent)
+        {
+            return ctx.Spawn(Props.FromProducer(()=>new ProcedureActor(taskEvent)));
+        }
+        void switchProcedureSet (IContext ctx,int type)
+        {
+            ctx.Send(ProcedurePID,type);
         }
     }
 }

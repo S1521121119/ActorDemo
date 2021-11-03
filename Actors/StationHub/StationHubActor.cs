@@ -4,15 +4,17 @@ using System.Threading.Tasks;
 using System.Collections.Generic;
 using Proto;
 
+
 namespace ActorDemo.Actors
 {
     class StationHubActor:IActor
-    {
+    { 
         List<PID> StationsPID;
         Lazy<ManualResetEvent> _stop = new Lazy<ManualResetEvent>(()=>new ManualResetEvent(false));
         private readonly Behavior _behavior;
         public StationHubActor()
         {
+            
             StationsPID = new List<PID>();
             _behavior = new Behavior();
             _behavior.Become(NullAsync);
@@ -25,6 +27,7 @@ namespace ActorDemo.Actors
                 case Started:
                     _behavior.Become(IdleAsync);
                     StationsPID.Clear();
+                    //ctx.Send(ctx.Parent,new StationHubStartedMessage());
                 break;
 
             }
@@ -34,17 +37,24 @@ namespace ActorDemo.Actors
         {
             switch (ctx.Message)
             {
+                //From Main
                 case string msg when msg == "Create":
                     ctx.Send(ctx.Self,new IncarnateStationMessage());
                 break;
                 
-                case  IncarnateStationMessage:
+                case IncarnateStationMessage msg:
                     var name = "ST_"+StationsPID.Count.ToString("00");
                     StationsPID.Add(IncarnateStation(ctx,name));
                 break;
+                
+                //from Station
+                case StationStartedMessage msg:
+                    ShowMessage($"StationStartedMessage : {ctx.Sender.Id}");
+                    ctx.Send(ctx.Sender,"Start");
+                break;
 
                 case string msg:
-                    Console.WriteLine($"Station hub msg : {ctx.Message}");
+                    ShowMessage($"Station hub msg : {ctx.Message}");
                     foreach (var st in StationsPID)
                     {
                         ctx.Forward(st);
@@ -54,11 +64,37 @@ namespace ActorDemo.Actors
             }
          return Task.CompletedTask;
         }
+        static bool ShowMessageSwitch = true;
+        public void ShowMessage(string msg)
+        {
+            if (ShowMessageSwitch)
+                Console.WriteLine(msg);
+        }
         private PID IncarnateStation(IContext ctx,string name)
         {
-            return ctx.SpawnNamed(Props.FromProducer(()=>new StationActor()),name);
+            return ctx.SpawnNamed(Props.FromProducer(()=>new StationActor()).WithChildSupervisorStrategy(new OneForOneStrategy(CommonStrategy.Decider.Decide,1,null)),name);
+            //return ctx.SpawnNamed(Props.FromProducer(()=>new StationActor()),name);
         }
     }
+    public static class CommonStrategy{
+        public static class Decider
+        {
+            public static SupervisorDirective Decide(PID pid, Exception reason)
+                => reason switch
+                {
+                    RecoverableException _ => SupervisorDirective.Restart,
+                    FatalException _       => SupervisorDirective.Stop,
+                    _                      => SupervisorDirective.Escalate
+                };
+        }
+        public class RecoverableException : Exception
+        {
+            
+        }
 
+        public class FatalException : Exception
+        {
+        }
+    }
 
 }

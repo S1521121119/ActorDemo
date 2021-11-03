@@ -6,9 +6,9 @@ namespace ActorDemo.Actors
 {
     class MainActor:IActor
     {
+        private readonly Behavior _behavior;
         PID stationHubPID;
         PID deviceHubPID;
-        private readonly Behavior _behavior;
         public MainActor()
         {
             _behavior = new Behavior();
@@ -30,7 +30,6 @@ namespace ActorDemo.Actors
                 case Started:
                     _behavior.Become(IdleAsync);
                 break;
-                
             }
          return Task.CompletedTask;
         }
