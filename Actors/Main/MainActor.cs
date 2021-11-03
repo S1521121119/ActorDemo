@@ -14,12 +14,16 @@ namespace ActorDemo.Actors
             _behavior = new Behavior();
             _behavior.Become(NullAsync);
         }
-        public Task ReceiveAsync(IContext ctx) => _behavior.ReceiveAsync(ctx);
+        public Task ReceiveAsync(IContext ctx) 
+        { 
+            Console.WriteLine($"MainActor Receive Message : {ctx.Message}");
+            return _behavior.ReceiveAsync(ctx);
+            }
         public Task NullAsync(IContext ctx)
         {
             if (stationHubPID == null)
             {    
-                stationHubPID =ctx.SpawnNamed(Props.FromProducer(()=>new StationHubActor()),"st_hub") ;
+                stationHubPID = ctx.SpawnNamed(Props.FromProducer(()=>new StationHubActor()),"st_hub") ;
             }
             if (deviceHubPID == null)
             {    

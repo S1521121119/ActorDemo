@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using System.Threading;
 using System.Linq;
 using Proto;
 
@@ -19,11 +20,13 @@ namespace ActorDemo.Actors
 
               break;
               case StartMessage _:
-                for (int i =0;i<10;i++)
+                for (int i =0;i<30;i++)
                 {
-                  Console.WriteLine(i);
-
+                  Console.Write(i);
+                  Thread.Sleep(100);
                 }
+                Console.WriteLine();
+                context.Respond(new ProcedureDoneMessage());
               break;
               case StopMessage _:
               

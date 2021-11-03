@@ -1,5 +1,4 @@
 using System;
-using System.Threading;
 using System.Threading.Tasks;
 using Proto;
 using Utilities;
@@ -31,6 +30,9 @@ namespace ActorDemo.Actors
             }
          return Task.CompletedTask;
         }
+        ///Procedure 只有在完成事件後，才會被清掉，
+        ///
+
         public Task IdleAsync(IContext ctx)
         {
             switch (ctx.Message)
@@ -38,7 +40,7 @@ namespace ActorDemo.Actors
                 case string msg when msg == "Start":  
                     taskEvent.Stop.Reset();
                     taskEvent.Start.Set();
-                    ProcedurePID = IncarnateProcedure(ctx,taskEvent);
+                    ProcedurePID =(ProcedurePID is null)?  IncarnateProcedure(ctx,taskEvent):ProcedurePID;
                     ctx.Send(ProcedurePID,new StationRunningMessage());
                 break;  
                 case string msg when msg == "Stop":
@@ -51,7 +53,9 @@ namespace ActorDemo.Actors
         }
         PID IncarnateProcedure(IContext ctx,TaskEvent taskEvent)
         {
-            return ctx.Spawn(Props.FromProducer(()=>new ProcedureActor(taskEvent)));
+            PID pid = ctx.Spawn(Props.FromProducer(()=>new ProcedureActor(taskEvent)));
+            Console.WriteLine(ctx.Self.Id+" Create "+pid.Id );
+            return pid;
         }
         void switchProcedureSet (IContext ctx,int type)
         {

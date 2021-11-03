@@ -12,11 +12,15 @@ namespace ActorDemo.Actors
     {
         public ProcedureActor(TaskEvent _taskEvent)
         {
+            _behavior = new Behavior();
+            _behavior.Become(Idle);
             TaskEvent =_taskEvent;
         }
+        private readonly Behavior _behavior ;
         private PID ProcessSetPid;
         private TaskEvent TaskEvent { get; }
-        public Task ReceiveAsync(IContext context)
+        public Task ReceiveAsync(IContext ctx) =>_behavior.ReceiveAsync(ctx);
+        public Task Idle(IContext context) 
         {
             switch (context.Message)
             {
@@ -27,21 +31,25 @@ namespace ActorDemo.Actors
                 case StationRunningMessage _:
                     bool isStop = false;
                     context.Send(ProcessSetPid, new InitRunMessage());
-                    while (!isStop)
+                    //while (!isStop)
                     {
                         var result = WaitHandle.WaitAny(new WaitHandle[] { TaskEvent.Start, TaskEvent.Stop, TaskEvent.Abort });
                         {
                             switch (result)
                             {
                                 case 0:
-                                    var stateStart = context.RequestAsync<bool>(ProcessSetPid, new StartMessage()).Result;
+                                    //var stateStart = context.RequestAsync<bool>(ProcessSetPid, new StartMessage()).Result;
+                                    context.Request(ProcessSetPid, new StartMessage());
+                                    _behavior.Become(Running);
                                     break;
                                 case 1:
-                                    var stateStop = context.RequestAsync<bool>(ProcessSetPid, new StopMessage()).Result;
+                                    //var stateStop = context.RequestAsync<bool>(ProcessSetPid, new StopMessage()).Result;
+                                    context.Request(ProcessSetPid, new StopMessage());
                                     isStop = true;
                                     break;
                                 case 2:
-                                    var stateAbort = context.RequestAsync<bool>(ProcessSetPid, new AbortMessage()).Result;
+                                    //var stateAbort = context.RequestAsync<bool>(ProcessSetPid, new AbortMessage()).Result;
+                                    context.Request(ProcessSetPid, new AbortMessage());
                                     isStop = true;
                                     break;
                             }
@@ -57,6 +65,19 @@ namespace ActorDemo.Actors
                     Console.WriteLine($"{context.Self.Id} is Stopped");
                     break;
             }
+            return Task.CompletedTask;
+        }
+        public Task Running(IContext context) 
+        {
+            switch (context.Message)
+            {
+                case ProcedureDoneMessage msg:
+                    Console.WriteLine("done.");
+                    _behavior.Become(Idle);
+                    context.Send(context.Self,new StationRunningMessage() );
+                break;
+            }
+                            
             return Task.CompletedTask;
         }
     }
